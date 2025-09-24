@@ -1,5 +1,6 @@
 import random
 import humanize
+import asyncio  # Add this import
 from Script import script
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, CallbackQuery
@@ -12,25 +13,25 @@ from utils import temp, get_shortlink
 
 
 @Client.on_message(filters.command("start") & filters.incoming)
-# async def start(client, message):
-#     if not await db.is_user_exist(message.from_user.id):
-#         await db.add_user(message.from_user.id, message.from_user.first_name)
-#         await client.send_message(
-#             LOG_CHANNEL,
-#             script.LOG_TEXT_P.format(message.from_user.id, message.from_user.mention)
-#         )
-#     rm = InlineKeyboardMarkup(
-#         [[
-#             InlineKeyboardButton("✨ Update Channel", url="https://t.me/trendi_Backup")
-#         ]]
-#     )
-#     await client.send_message(
-#         chat_id=message.from_user.id,
-#         text=script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
-#         reply_markup=rm,
-#         parse_mode=enums.ParseMode.HTML
-#     )
-#     return
+#async def start(client, message):
+#    if not await db.is_user_exist(message.from_user.id):
+#       await db.add_user(message.from_user.id, message.from_user.first_name)
+#        await client.send_message(
+#            LOG_CHANNEL,
+#           script.LOG_TEXT_P.format(message.from_user.id, message.from_user.mention)
+#        )
+#   rm = InlineKeyboardMarkup(
+#        [[
+#            InlineKeyboardButton("✨ Update Channel", url="https://t.me/trendi_Backup")
+#        ]]
+#    )
+#    await client.send_message(
+#        chat_id=message.from_user.id,
+#        text=script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
+#        reply_markup=rm,
+#        parse_mode=enums.ParseMode.HTML
+#    )
+#    return
 
 
 @Client.on_message(filters.private & (filters.document | filters.video))
@@ -85,32 +86,32 @@ async def stream_start(client, message):
         ]
     )
 
-    #Message text (no raw links)
-    msg_text = """<i><u>𝗬𝗼𝘂𝗿 𝗟𝗶𝗻𝗸 𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗲𝗱 !</#u></i>\n\n
+    # Message text (no raw links)
+    msg_text = """<i><u>𝗬𝗼𝘂𝗿 𝗟𝗶𝗻𝗸 𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗲𝗱 !</u></i>\n\n
 <b>📂 Fɪʟᴇ ɴᴀᴍᴇ :</b> <i>{}</i>\n\n
 <b>📦 Fɪʟᴇ ꜱɪᴢᴇ :</b> <i>{}</i>\n\n
-<b>🚸 Nᴏᴛᴇ : auto delete 300 second ʟɪɴᴋ ᴇxᴘɪʀᴇ 24 hours </b>"""
+<b>⏰ Nᴏᴛᴇ : Tʜɪs ᴍᴇssᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏ-ᴅᴇʟᴇᴛᴇᴅ ɪɴ 5 ᴍɪɴᴜᴛᴇs</b>\n
+<b>🚸 Lɪɴᴋ ᴡɪʟʟ ᴇxᴘɪʀᴇ ɪɴ 24 ʜᴏᴜʀs</b>"""
 
-    await message.reply_text(
+    # Send message and store the message object
+    main_msg = await message.reply_text(
         text=msg_text.format(
             get_name(log_msg),                       # filename
             humanbytes(get_media_file_size(message)),# filesize
-            download,                                # passed but unused
-            stream                                   # passed but unused
         ),
         quote=True,
         disable_web_page_preview=True,
         reply_markup=rm
     )
 
-        # Auto-delete function
+    # Auto-delete function
     async def auto_delete():
-        await asyncio.sleep(300)  # 10 minutes = 600 seconds
         try:
+            await asyncio.sleep(300)  # 300 seconds = 5 minutes
             await main_msg.delete()
-            print(f"Message deleted successfully for user {user_id}")
+            print(f"✅ Auto-deleted message for user {user_id}")
         except Exception as e:
-            print(f"Error deleting message: {e}")
+            print(f"❌ Error deleting message for user {user_id}: {e}")
     
     # Run the auto-delete in background
     asyncio.create_task(auto_delete())
