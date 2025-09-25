@@ -52,39 +52,43 @@ async def stream_start(client, message):
     fileName = get_name(log_msg)
 
     # Generate stream & download links
-    if SHORTLINK is False:
-        stream = f"{URL}/watch/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
-        download = f"{URL}/download/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
-    else:
-        stream = await get_shortlink(
-            f"{URL}/watch/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
-        )
-        download = await get_shortlink(
-            f"{URL}/download/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
-        )
-
-    # Log message
-    await log_msg.reply_text(
-        text=f"•• ʟɪɴᴋ ɢᴇɴᴇʀᴀᴛᴇᴅ ꜰᴏʀ ɪᴅ #{user_id} \n•• ᴜꜱᴇʀɴᴀᴍᴇ : {username} \n\n•• ᖴᎥᒪᗴ Nᗩᗰᴇ : {fileName}",
-        quote=True,
-        disable_web_page_preview=True,
-        reply_markup=InlineKeyboardMarkup(
-            [[
-                InlineKeyboardButton("🚀 Fast Download 🚀", url=download),
-                InlineKeyboardButton("🖥 Watch online 🖥", url=stream)
-            ]]
-        )
+    # Generate stream & download links
+if SHORTLINK is False:
+    stream = f"{URL}/watch/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
+    download = f"{URL}/download/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
+else:
+    stream = await get_shortlink(
+        f"{URL}/watch/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
+    )
+    download = await get_shortlink(
+        f"{URL}/download/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
     )
 
-    # Buttons for user
-    rm = InlineKeyboardMarkup(
+# Log message
+await log_msg.reply_text(
+    text=f"•• ʟɪɴᴋ ɢᴇɴᴇʀᴀᴛᴇᴅ ꜰᴏʀ ɪᴅ #{user_id} \n•• ᴜꜱᴇʀɴᴀᴍᴇ : {username} \n\n•• ᖴᎥᒪᗴ Nᗩᗰᴇ : {fileName}",
+    quote=True,
+    disable_web_page_preview=True,
+    reply_markup=InlineKeyboardMarkup(
+        [[
+            InlineKeyboardButton("🚀 Fast Download 🚀", url=download),
+            InlineKeyboardButton("🖥 Watch online 🖥", url=stream)
+        ]]
+    )
+)
+
+# Buttons for user
+rm = InlineKeyboardMarkup(
+    [
         [
-            [
-                InlineKeyboardButton("sᴛʀᴇᴀᴍ 🖥", url=stream),
-                InlineKeyboardButton("ᴅᴏᴡɴʟᴏᴀᴅ 📥", url=download)
-            ]
+            InlineKeyboardButton("sᴛʀᴇᴀᴍ 🖥", url=stream),
+            InlineKeyboardButton("ᴅᴏᴡɴʟᴏᴀᴅ 📥", url=download)
+        ],
+        [
+            InlineKeyboardButton("• ᴡᴀᴛᴄʜ ɪɴ ᴡᴇʙ ᴀᴘᴘ •", web_app=WebAppInfo(url=stream))
         ]
-    )
+    ]
+)
 
     # Message text (no raw links)
     msg_text = """<i><u>𝗬𝗼𝘂𝗿 𝗟𝗶𝗻𝗸 𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗲𝗱 !</u></i>\n\n
