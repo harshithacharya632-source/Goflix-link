@@ -4,38 +4,37 @@ import asyncio
 from Script import script
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, CallbackQuery, WebAppInfo
-from info import URL, LOG_CHANNEL, SHORTLINK
+from info import URL, LOG_CHANNEL, SHORTLINK, BOT_TOKEN
 from urllib.parse import quote_plus
 from TechVJ.util.file_properties import get_name, get_hash, get_media_file_size
 from TechVJ.util.human_readable import humanbytes
 from database.users_chats_db import db
 from utils import temp, get_shortlink
+import requests
 
 
 @Client.on_message(filters.command("start") & filters.incoming)
-#async def start(client, message):
-#    if not await db.is_user_exist(message.from_user.id):
-#       await db.add_user(message.from_user.id, message.from_user.first_name)
-#        await client.send_message(
-#            LOG_CHANNEL,
-#           script.LOG_TEXT_P.format(message.from_user.id, message.from_user.mention)
-#        )
-#   rm = InlineKeyboardMarkup(
-#        [[
-#            InlineKeyboardButton("✨ Update Channel", url="https://t.me/trendi_Backup")
-#        ]]
-#    )
-#    await client.send_message(
-#        chat_id=message.from_user.id,
-#        text=script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
-#        reply_markup=rm,
-#        parse_mode=enums.ParseMode.HTML
-#    )
-#    return
+async def start(client, message):
+    if not await db.is_user_exist(message.from_user.id):
+        await db.add_user(message.from_user.id, message.from_user.first_name)
+        await client.send_message(
+            LOG_CHANNEL,
+            script.LOG_TEXT_P.format(message.from_user.id, message.from_user.mention)
+        )
+    rm = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("✨ Update Channel", url="https://t.me/trendi_Backup")]]
+    )
+    await client.send_message(
+        chat_id=message.from_user.id,
+        text=script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
+        reply_markup=rm,
+        parse_mode=enums.ParseMode.HTML
+    )
 
 
 @Client.on_message(filters.private & (filters.document | filters.video))
 async def stream_start(client, message):
+    # Get the file info
     file = getattr(message, message.media.value)
     filename = file.file_name
     filesize = humanize.naturalsize(file.file_size)
@@ -51,16 +50,24 @@ async def stream_start(client, message):
 
     fileName = get_name(log_msg)
 
+    # -----------------------------
+    # Get Telegram CDN link
+    # -----------------------------
+    resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={fileid}").json()
+    if not resp.get("ok"):
+        await message.reply_text("❌ Error fetching Telegram CDN link")
+        return
+    file_path = resp["result"]["file_path"]
+    cdn_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
+
     # Generate stream & download links
     if SHORTLINK is False:
-        stream = f"{URL}/watch/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
-        download = f"{URL}/download/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
+        stream = cdn_url
+        download = f"{URL}/download/{str(log_msg.id)}/{quote_plus(fileName)}?hash={get_hash(log_msg)}"
     else:
-        stream = await get_shortlink(
-            f"{URL}/watch/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
-        )
+        stream = await get_shortlink(cdn_url)
         download = await get_shortlink(
-            f"{URL}/download/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
+            f"{URL}/download/{str(log_msg.id)}/{quote_plus(fileName)}?hash={get_hash(log_msg)}"
         )
 
     # Log message
@@ -99,8 +106,8 @@ async def stream_start(client, message):
     # Send message and store the message object
     main_msg = await message.reply_text(
         text=msg_text.format(
-            get_name(log_msg),                       # filename
-            humanbytes(get_media_file_size(message)),# filesize
+            fileName,
+            humanbytes(get_media_file_size(message)),
         ),
         quote=True,
         disable_web_page_preview=True,
@@ -110,11 +117,11 @@ async def stream_start(client, message):
     # Auto-delete function
     async def auto_delete():
         try:
-            await asyncio.sleep(300)  # 300 seconds = 5 minutes
+            await asyncio.sleep(300)  # 5 minutes
             await main_msg.delete()
             print(f"✅ Auto-deleted message for user {user_id}")
         except Exception as e:
             print(f"❌ Error deleting message for user {user_id}: {e}")
-    
+
     # Run the auto-delete in background
     asyncio.create_task(auto_delete())
