@@ -23,7 +23,7 @@ import requests
   #      )
   #  rm = InlineKeyboardMarkup(
    #     [[InlineKeyboardButton("✨ Update Channel", url="https://t.me/trendi_Backup")]]
-    )
+  #  )
   #  await client.send_message(
     #    chat_id=message.from_user.id,
     #    text=script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
