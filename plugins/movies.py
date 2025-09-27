@@ -1,17 +1,22 @@
 import os
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from TechVJ.util import temp  # To access your bot client
+from TechVJ.bot import TechVJBot  # use your main bot client
 
 # Read channels from environment variable
-CHANNELS = os.environ.get("CHANNELS", "@Channel1,@Channel2")
+CHANNELS = os.environ.get("CHANNELS", "-1001234567890,-1009876543210")  
 channel_list = [ch.strip() for ch in CHANNELS.split(",")]
 
 # Command to list movies from private channels
-@temp.BOT.on_message(filters.command("movies"))
+@TechVJBot.on_message(filters.command("movies"))
 async def list_movies(client, message):
     for channel in channel_list:
-        messages = await client.get_chat_history(channel, limit=50)
+        try:
+            messages = await client.get_chat_history(channel, limit=50)
+        except Exception as e:
+            await message.reply_text(f"❌ Could not read from {channel}\nError: {e}")
+            continue
+
         if not messages:
             await message.reply_text(f"No movies found in {channel}.")
             continue
@@ -28,7 +33,7 @@ async def list_movies(client, message):
                 await message.reply_text(f"🎞️ {caption}", reply_markup=keyboard)
 
 # Callback handler to stream movie
-@temp.BOT.on_callback_query(filters.regex(r"play_(.+)"))
+@TechVJBot.on_callback_query(filters.regex(r"play_(.+)"))
 async def play_movie(client, callback_query):
     file_id = callback_query.data.split("_", 1)[1]
     await callback_query.message.reply_video(file_id, caption="Enjoy your movie! 🎥")
