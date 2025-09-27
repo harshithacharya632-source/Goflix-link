@@ -1,23 +1,52 @@
-# Don't Remove Credit @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
+# Script.py
+START_TXT = """**👋 Hello {}! Welcome to FileToLink Bot**
 
+I can convert your files into shareable links!
 
-class script(object):
-    START_TXT = """<b>Hello {} 👋, My Name Is <a href=https://t.me/{}>{}</a>
-    
-✏️ I Am A Advance File Stream Bot With Multiple Player Support And Url Shortner. Best Ui Performance.
+**📁 Supported Files:**
+• Videos (MP4, MKV, AVI, etc.)
+• Documents (PDF, ZIP, RAR, etc.)
+• Audio files (MP3, WAV, etc.)
+• Images (JPG, PNG, etc.)
 
-Now Send Me A Media To See Magic ✨</b>"""
+**⚡ How to use:**
+1. Send me any file
+2. I'll generate streaming/download links
+3. Share links with anyone
 
-    LOG_TEXT_P = """#NewUser
-ID - <code>{}</code>
-Nᴀᴍᴇ - {}"""
-    
-    RESTART_TXT = """
-<b>Bᴏᴛ Rᴇsᴛᴀʀᴛᴇᴅ !
+Use /help for more information."""
 
-📅 Dᴀᴛᴇ : <code>{}</code>
-⏰ Tɪᴍᴇ : <code>{}</code>
-🌐 Tɪᴍᴇᴢᴏɴᴇ : <code>Asia/Kolkata</code>
-🛠️ Bᴜɪʟᴅ Sᴛᴀᴛᴜs: <code>v2.7.1 [ Sᴛᴀʙʟᴇ ]</code></b>"""
+HELP_TXT = """**📚 Help Guide**
+
+**🔧 Available Commands:**
+/start - Start the bot
+/help - Show this help message
+/stats - Bot statistics (Admin only)
+
+**📁 File Conversion:**
+Simply send me any file and I'll convert it to links!
+
+**🔗 Link Features:**
+• Streaming links for videos
+• Direct download links
+• Web app player
+• Auto-expire after 24 hours
+
+**📱 Supported Formats:**
+All common file types are supported!"""
+
+ABOUT_TXT = """**📊 About FileToLink Bot**
+
+**Version:** 2.0
+**Developer:** Your Name
+**Framework:** Pyrogram
+**Database:** MongoDB
+
+**🌐 Features:**
+• Fast file conversion
+• Secure link generation
+• User-friendly interface
+• 24/7 availability
+
+**🔒 Privacy:**
+Your files are safe and secure!"""
