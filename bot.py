@@ -18,7 +18,6 @@ logging.getLogger("aiohttp").setLevel(logging.ERROR)
 logging.getLogger("aiohttp.web").setLevel(logging.ERROR)
 
 from pyrogram import idle 
-from database.users_chats_db import db
 from info import *
 from utils import temp
 from Script import script 
@@ -28,76 +27,97 @@ from plugins import web_server
 
 from TechVJ.bot import TechVJBot
 from TechVJ.util.keepalive import ping_server
-from TechVJ.bot.clients import initialize_clients
 
 async def start():
     print('\n')
-    print('Initializing Your Bot')
+    print('🚀 Initializing FileToLink Bot...')
     
-    # Start the bot first
-    await TechVJBot.start()
-    bot_info = await TechVJBot.get_me()
-    print(f"Bot started as @{bot_info.username}")
+    # Validate required environment variables
+    if not API_ID or not API_HASH or not BOT_TOKEN:
+        print("❌ Error: Missing required environment variables (API_ID, API_HASH, BOT_TOKEN)")
+        return
     
-    await initialize_clients()
+    # Start the bot
+    try:
+        await TechVJBot.start()
+        bot_info = await TechVJBot.get_me()
+        print(f"✅ Bot started as @{bot_info.username}")
+    except Exception as e:
+        print(f"❌ Error starting bot: {e}")
+        return
     
     # Load plugins
     ppath = "plugins/*.py"
     files = glob.glob(ppath)
-    for name in files:
-        with open(name) as a:
-            patt = Path(a.name)
-            plugin_name = patt.stem.replace(".py", "")
-            plugins_dir = Path(f"plugins/{plugin_name}.py")
-            import_path = "plugins.{}".format(plugin_name)
-            spec = importlib.util.spec_from_file_location(import_path, plugins_dir)
-            load = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(load)
-            sys.modules["plugins." + plugin_name] = load
-            print("Tech VJ Imported => " + plugin_name)
     
-    if ON_HEROKU:
-        asyncio.create_task(ping_server())
+    if not files:
+        print("❌ No plugins found in plugins/ directory")
+    else:
+        for name in files:
+            try:
+                patt = Path(name)
+                plugin_name = patt.stem.replace(".py", "")
+                import_path = f"plugins.{plugin_name}"
+                
+                # Import the plugin
+                spec = importlib.util.spec_from_file_location(import_path, name)
+                load = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(load)
+                sys.modules[import_path] = load
+                print(f"✅ Imported => {plugin_name}")
+            except Exception as e:
+                print(f"❌ Failed to import {plugin_name}: {e}")
     
+    # Setup temp variables
     me = await TechVJBot.get_me()
     temp.BOT = TechVJBot
     temp.ME = me.id
     temp.U_NAME = me.username
     temp.B_NAME = me.first_name
+    temp.B_LINK = f"https://t.me/{me.username}" if me.username else None
     
-    tz = pytz.timezone('Asia/Kolkata')
-    today = date.today()
-    now = datetime.now(tz)
-    time = now.strftime("%H:%M:%S %p")
-    
-    # Send restart message
+    # Send restart message to log channel
     try:
-        await TechVJBot.send_message(
-            chat_id=LOG_CHANNEL, 
-            text=script.RESTART_TXT.format(today, time)
-        )
+        tz = pytz.timezone('Asia/Kolkata')
+        today = date.today()
+        now = datetime.now(tz)
+        time = now.strftime("%H:%M:%S %p")
+        
+        restart_msg = script.RESTART_TXT.format(today, time)
+        await TechVJBot.send_message(chat_id=LOG_CHANNEL, text=restart_msg)
         print("✅ Restart message sent to log channel")
     except Exception as e:
-        print(f"❌ Error sending restart message: {e}")
+        print(f"⚠️ Could not send restart message: {e}")
+    
+    # Start keepalive server if on Heroku/Render
+    if ON_HEROKU:
+        asyncio.create_task(ping_server())
+        print("✅ Keepalive server started")
     
     # Start web server
     try:
         app = web.AppRunner(await web_server())
         await app.setup()
         bind_address = "0.0.0.0"
-        await web.TCPSite(app, bind_address, PORT).start()
-        print(f"✅ Web server started on port {PORT}")
+        port = int(PORT) if PORT else 8080
+        await web.TCPSite(app, bind_address, port).start()
+        print(f"✅ Web server started on port {port}")
     except Exception as e:
-        print(f"❌ Error starting web server: {e}")
+        print(f"⚠️ Web server error: {e}")
     
-    print("✅ Bot is now running! Press Ctrl+C to stop.")
+    print("🎉 Bot is now running! Press Ctrl+C to stop.")
+    print(f"🔗 Your bot: https://t.me/{me.username}")
+    
+    # Keep the bot running
     await idle()
 
 if __name__ == '__main__':
     try:
-        loop = asyncio.get_event_loop()
+        # Create new event loop for Render
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(start())
     except KeyboardInterrupt:
-        print('Service Stopped Bye 👋')
+        print('\n👋 Service Stopped Bye!')
     except Exception as e:
-        print(f'Error: {e}')
+        print(f'\n❌ Error: {e}')
