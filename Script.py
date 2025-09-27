@@ -55,11 +55,22 @@ ABOUT_TXT = """**📊 About FileToLink Bot**
 **🔒 Privacy:**
 Your files are safe and secure!"""
 
+# Restart message (ADD THIS)
+RESTART_TXT = """**🔄 Bot Restarted Successfully!**
+
+**📊 Server Status:**
+• **Date:** {}
+• **Time:** {}
+• **Status:** ✅ Running
+
+**🤖 Bot is now online and ready to process your files!**"""
+
 # If you need to export as a module
 class Script:
     START_TXT = START_TXT
     HELP_TXT = HELP_TXT
     ABOUT_TXT = ABOUT_TXT
+    RESTART_TXT = RESTART_TXT  # ADD THIS LINE
 
 # Export the variables
 script = Script()
