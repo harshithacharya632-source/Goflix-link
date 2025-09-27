@@ -1,4 +1,6 @@
 # Script.py
+
+# Start message
 START_TXT = """**👋 Hello {}! Welcome to FileToLink Bot**
 
 I can convert your files into shareable links!
@@ -16,6 +18,7 @@ I can convert your files into shareable links!
 
 Use /help for more information."""
 
+# Help message
 HELP_TXT = """**📚 Help Guide**
 
 **🔧 Available Commands:**
@@ -35,6 +38,7 @@ Simply send me any file and I'll convert it to links!
 **📱 Supported Formats:**
 All common file types are supported!"""
 
+# About message
 ABOUT_TXT = """**📊 About FileToLink Bot**
 
 **Version:** 2.0
@@ -50,3 +54,12 @@ ABOUT_TXT = """**📊 About FileToLink Bot**
 
 **🔒 Privacy:**
 Your files are safe and secure!"""
+
+# If you need to export as a module
+class Script:
+    START_TXT = START_TXT
+    HELP_TXT = HELP_TXT
+    ABOUT_TXT = ABOUT_TXT
+
+# Export the variables
+script = Script()
