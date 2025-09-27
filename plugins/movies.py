@@ -1,10 +1,9 @@
 import os
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from TechVJ.bot import TechVJBot  # use your main bot client
+from TechVJ.bot import TechVJBot
 
-# Read channels from environment variable
-CHANNELS = os.environ.get("CHANNELS", "-1001234567890,-1009876543210")  
+CHANNELS = os.environ.get("CHANNELS", "-1001234567890,-1009876543210")
 channel_list = [ch.strip() for ch in CHANNELS.split(",")]
 
 # Command to list movies from private channels
@@ -12,7 +11,7 @@ channel_list = [ch.strip() for ch in CHANNELS.split(",")]
 async def list_movies(client, message):
     for channel in channel_list:
         try:
-            messages = await client.get_chat_history(channel, limit=50)
+            messages = await client.get_chat_history(channel, limit=10)  # list 10 per channel
         except Exception as e:
             await message.reply_text(f"❌ Could not read from {channel}\nError: {e}")
             continue
@@ -24,17 +23,27 @@ async def list_movies(client, message):
         await message.reply_text(f"🎬 Movies from {channel}:")
         for msg in messages:
             if msg.video or msg.document:
-                file_id = msg.video.file_id if msg.video else msg.document.file_id
                 caption = msg.video.file_name if msg.video else msg.document.file_name
-
+                # Save reference (channel + message_id)
                 keyboard = InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("▶️ Play Online", callback_data=f"play_{file_id}")]]
+                    [[InlineKeyboardButton("▶️ Play Online", callback_data=f"play_{channel}_{msg.id}")]]
                 )
                 await message.reply_text(f"🎞️ {caption}", reply_markup=keyboard)
 
 # Callback handler to stream movie
 @TechVJBot.on_callback_query(filters.regex(r"play_(.+)"))
 async def play_movie(client, callback_query):
-    file_id = callback_query.data.split("_", 1)[1]
-    await callback_query.message.reply_video(file_id, caption="Enjoy your movie! 🎥")
-    await callback_query.answer()
+    data = callback_query.data.split("_", 2)
+    channel = data[1]
+    msg_id = int(data[2])
+
+    try:
+        # Forward or copy the original movie message
+        await client.copy_message(
+            chat_id=callback_query.message.chat.id,
+            from_chat_id=channel,
+            message_id=msg_id,
+        )
+        await callback_query.answer("🎥 Streaming...")
+    except Exception as e:
+        await callback_query.answer("❌ Error streaming file", show_alert=True)
