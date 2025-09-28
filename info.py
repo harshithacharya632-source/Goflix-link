@@ -10,31 +10,24 @@ API_ID = int(environ.get('API_ID', '0'))
 API_HASH = environ.get('API_HASH', '')
 BOT_TOKEN = environ.get('BOT_TOKEN', "")
 
-# Debug: Check environment variables
-print("=== ENVIRONMENT VARIABLES ===")
+# Debug info
+print("=== Goflix Bot Starting ===")
 print(f"API_ID: {API_ID}")
-print(f"API_HASH: {bool(API_HASH)}")
-print(f"BOT_TOKEN: {bool(BOT_TOKEN)}")
 
-# Critical: LOG_CHANNEL must be a valid channel ID
-LOG_CHANNEL = environ.get('LOG_CHANNEL', '')
-
-# Validate LOG_CHANNEL
-if not LOG_CHANNEL:
-    print("❌ ERROR: LOG_CHANNEL is empty!")
-    # Use a temporary valid channel ID for testing
-    LOG_CHANNEL = '-1003059886878'  # Replace with actual ID
+# CRITICAL FIX: Handle LOG_CHANNEL properly
+log_channel_str = environ.get('LOG_CHANNEL', '').strip()
+if not log_channel_str:
+    print("❌ FATAL ERROR: LOG_CHANNEL environment variable is empty!")
+    print("Please set LOG_CHANNEL in Render environment variables")
+    # Use a dummy value to prevent immediate crash
+    LOG_CHANNEL = -1003059886878
 else:
-    print(f"LOG_CHANNEL: {LOG_CHANNEL}")
-
-try:
-    LOG_CHANNEL = int(LOG_CHANNEL)
-except (ValueError, TypeError):
-    print("❌ ERROR: LOG_CHANNEL must be a valid integer!")
-    LOG_CHANNEL = -1001234567890  # Fallback
-
-print(f"Final LOG_CHANNEL: {LOG_CHANNEL}")
-print("=============================")
+    try:
+        LOG_CHANNEL = int(log_channel_str)
+        print(f"LOG_CHANNEL: {LOG_CHANNEL}")
+    except ValueError:
+        print(f"❌ ERROR: Invalid LOG_CHANNEL format: {log_channel_str}")
+        LOG_CHANNEL = -1003059886878
 
 # Bot settings
 PORT = environ.get("PORT", "8080")
@@ -53,7 +46,9 @@ if admins_str:
     ADMINS = [int(admin) if id_pattern.search(admin) else admin for admin in admins_str.split()]
 else:
     ADMINS = [762638982]  # Your Telegram ID
-    print("⚠️ WARNING: ADMINS not set, using default")
+    print("⚠️ ADMINS not set, using default")
+
+print(f"ADMINS: {ADMINS}")
 
 # MongoDB information
 DATABASE_URI = environ.get('DATABASE_URI', "mongodb+srv://harshithacharya632:j2UBud9b3XUpk4Pn@goflix.iff0agy.mongodb.net/goflix?retryWrites=true&w=majority&appName=Goflix")
@@ -63,3 +58,5 @@ DATABASE_NAME = environ.get('DATABASE_NAME', "Goflix")
 SHORTLINK = environ.get('SHORTLINK', 'False').lower() == 'true'
 SHORTLINK_URL = environ.get('SHORTLINK_URL', 'api.shareus.io')
 SHORTLINK_API = environ.get('SHORTLINK_API', 'hRPS5vvZc0OGOEUQJMJzPiojoVK2')
+
+print("=== Configuration Loaded ===")
