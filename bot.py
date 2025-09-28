@@ -28,6 +28,9 @@ from plugins import web_server
 from TechVJ.bot import TechVJBot
 from TechVJ.util.keepalive import ping_server
 
+# ✅ ADD THIS IMPORT
+from channel_utils import send_restart_message, test_channel_access
+
 async def start():
     print('\n')
     print('🚀 Initializing FileToLink Bot...')
@@ -45,6 +48,10 @@ async def start():
     except Exception as e:
         print(f"❌ Error starting bot: {e}")
         return
+    
+    # ✅ TEST CHANNEL ACCESS
+    channel_test = await test_channel_access(TechVJBot)
+    print(f"🔧 {channel_test}")
     
     # Load plugins
     ppath = "plugins/*.py"
@@ -76,7 +83,7 @@ async def start():
     temp.B_NAME = me.first_name
     temp.B_LINK = f"https://t.me/{me.username}" if me.username else None
     
-    # Send restart message to log channel
+    # ✅ FIXED: Send restart message safely
     try:
         tz = pytz.timezone('Asia/Kolkata')
         today = date.today()
@@ -84,8 +91,14 @@ async def start():
         time = now.strftime("%H:%M:%S %p")
         
         restart_msg = script.RESTART_TXT.format(today, time)
-        await TechVJBot.send_message(chat_id=LOG_CHANNEL, text=restart_msg)
-        print("✅ Restart message sent to log channel")
+        
+        # ✅ USE SAFE CHANNEL FUNCTION INSTEAD OF DIRECT SEND
+        success = await send_restart_message(TechVJBot, restart_msg)
+        if success:
+            print("✅ Restart message sent successfully")
+        else:
+            print("⚠️ Restart message sent to admin fallback")
+            
     except Exception as e:
         print(f"⚠️ Could not send restart message: {e}")
     
